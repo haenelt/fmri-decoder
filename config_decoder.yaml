@@ -1,0 +1,113 @@
+---
+# This configuration file can be used to run the MVPA analysis with the fmri_decoder 
+# package.
+
+
+# parameters
+# ---
+
+# data preprocessing parameters
+TR: 3  # repetition time in seconds
+n_skip: 2  # number of skipped initial volumes per experimental condition*
+cutoff_sec: 270  # cutoff frequency for time series detrending in 1/Hz
+filter_size: 0.5  # bandpass filter size (applied if not none)**
+# *Time series volumes are skipped at the beginning of each experimental block to 
+# disregard transient BOLD responses from further analysis.
+# **After sampling time series data onto the surface geometry, the sampled data can 
+# optionally be filtered using a bandpass filter (Laplacian of Gaussian). The filter 
+# size is the size of the gaussian filter as described in Chen et al., Neuroimage, 181, 
+# 2018.
+
+# model parameters
+nmax: 200  # number of selected features
+radius: 1.6  # minimum radius between selected features in mm (applied if not none)
+feature_scaling: standard  # feature scaling method: min_max | standard | none
+sample_scaling: standard  # sample normalization method: norm | standard | none
+
+
+# data
+# ---
+
+# Realigned fmri time series. It is expected that individual time series are aligned to
+# each other.
+file_series:
+  - /home/daniel/ownCloud/data/func/run_1_bold.nii
+  - /home/daniel/ownCloud/data/func/run_2_bold.nii
+  - /home/daniel/ownCloud/data/func/run_3_bold.nii
+  - /home/daniel/ownCloud/data/func/run_4_bold.nii
+  - /home/daniel/ownCloud/data/func/run_5_bold.nii
+  - /home/daniel/ownCloud/data/func/run_6_bold.nii
+  - /home/daniel/ownCloud/data/func/run_7_bold.nii
+  - /home/daniel/ownCloud/data/func/run_8_bold.nii
+  - /home/daniel/ownCloud/data/func/run_9_bold.nii
+  - /home/daniel/ownCloud/data/func/run_10_bold.nii
+
+# Corresponding condition files. Events of each experimental condition (onset, name, 
+# duration) are expected to be saved as a cell array in a mat file format that is 
+# comptible with SPM12.
+file_events:
+  - /home/daniel/ownCloud/data/func/run_1_events.mat
+  - /home/daniel/ownCloud/data/func/run_2_events.mat
+  - /home/daniel/ownCloud/data/func/run_3_events.mat
+  - /home/daniel/ownCloud/data/func/run_4_events.mat
+  - /home/daniel/ownCloud/data/func/run_5_events.mat
+  - /home/daniel/ownCloud/data/func/run_6_events.mat
+  - /home/daniel/ownCloud/data/func/run_7_events.mat
+  - /home/daniel/ownCloud/data/func/run_8_events.mat
+  - /home/daniel/ownCloud/data/func/run_9_events.mat
+  - /home/daniel/ownCloud/data/func/run_10_events.mat
+
+# Freesurfer geometries for multiple cortical depths. Single hemispheres are given
+# independently.
+file_layer:
+  lh:
+    - /home/daniel/ownCloud/data/ana/surf/lh.layer_0
+    - /home/daniel/ownCloud/data/ana/surf/lh.layer_1
+    - /home/daniel/ownCloud/data/ana/surf/lh.layer_2
+    - /home/daniel/ownCloud/data/ana/surf/lh.layer_3
+    - /home/daniel/ownCloud/data/ana/surf/lh.layer_4
+    - /home/daniel/ownCloud/data/ana/surf/lh.layer_5
+    - /home/daniel/ownCloud/data/ana/surf/lh.layer_6
+    - /home/daniel/ownCloud/data/ana/surf/lh.layer_7
+    - /home/daniel/ownCloud/data/ana/surf/lh.layer_8
+    - /home/daniel/ownCloud/data/ana/surf/lh.layer_9
+    - /home/daniel/ownCloud/data/ana/surf/lh.layer_10
+  rh:
+    - /home/daniel/ownCloud/data/ana/surf/rh.layer_0
+    - /home/daniel/ownCloud/data/ana/surf/rh.layer_1
+    - /home/daniel/ownCloud/data/ana/surf/rh.layer_2
+    - /home/daniel/ownCloud/data/ana/surf/rh.layer_3
+    - /home/daniel/ownCloud/data/ana/surf/rh.layer_4
+    - /home/daniel/ownCloud/data/ana/surf/rh.layer_5
+    - /home/daniel/ownCloud/data/ana/surf/rh.layer_6
+    - /home/daniel/ownCloud/data/ana/surf/rh.layer_7
+    - /home/daniel/ownCloud/data/ana/surf/rh.layer_8
+    - /home/daniel/ownCloud/data/ana/surf/rh.layer_9
+    - /home/daniel/ownCloud/data/ana/surf/rh.layer_10
+
+# A coordinate mapping that contains the transformation of surface coordinates to the
+# the space of fmri time series. This deformation file is optional and should be only
+# given if surface and volume data are not aligned to each other.
+file_deformation: /home/daniel/ownCloud/data/ana/deform/transformation.nii.gz
+
+# Surface overlays for feature selection. Data points are selected by their magnitude in 
+# the localizer overlay. When mutliple files are given, the average across overlays is 
+# first computed. Single hemispheres are given independently.
+file_localizer:
+  lh:
+    - /home/daniel/ownCloud/data/loc/lh.localizer1.mgh
+    - /home/daniel/ownCloud/data/loc/lh.localizer2.mgh
+  rh:
+    - /home/daniel/ownCloud/data/loc/rh.localizer1.mgh
+    - /home/daniel/ownCloud/data/loc/rh.localizer2.mgh
+
+# Label files to restrict data analysis to one cortical area (e.g. V1). When multiple 
+# files are give, the intersection of all labels is taken. Single hemispheres are given 
+# independently.
+file_label:
+  lh:
+    - /home/daniel/ownCloud/data/ana/label/lh.v1.label
+    - /home/daniel/ownCloud/data/ana/label/lh.fov.label
+  rh:
+    - /home/daniel/ownCloud/data/ana/label/rh.v1.label
+    - /home/daniel/ownCloud/data/ana/label/rh.fov.label

@@ -1,0 +1,21 @@
+# compiled bytecode
+*.pyc
+__pycache__
+
+# jupyter notebook
+*.ipynb_checkpoints
+
+# pycharm project directory
+*.idea
+
+# vscode project directory
+*.vscode
+
+# cache
+.mypy_cache
+.pytest_cache
+
+# coverage reports
+htmlcov/
+.coverage
+coverage.xml

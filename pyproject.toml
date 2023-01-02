@@ -1,0 +1,35 @@
+[tool.poetry]
+name = "fmri-decoder"
+version = "0.1.0"
+description = "Decoding tools for functional magnetic resonance imaging data"
+authors = ["Daniel Haenelt <daniel.haenelt@gmail.com>"]
+license = "GPLv3"
+readme = "README.md"
+repository = "https://github.com/haenelt/fmri-decoder"
+keywords = ["fmri", "decoding"]
+packages = [{include = "fmri_decoder"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+numpy = "^1.23.5"
+nibabel = "^4.0.2"
+matplotlib = "^3.6.2"
+scipy = "^1.9.3"
+scikit-learn = "^1.1.3"
+pandas = "^1.5.2"
+pyarrow = "^10.0.1"
+pyyaml = "^6.0"
+joblib = "^1.2.0"
+fmri-tools = {git = "https://github.com/haenelt/FmriTools", rev = "release-1.0.3"}
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.2.0"
+pytest-cov = "^4.0.0"
+black = "^22.10.0"
+ipykernel = "^6.17.1"
+mypy = "^0.991"
+types-pyyaml = "^6.0.12.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
