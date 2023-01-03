@@ -41,7 +41,7 @@ VERB_HELP = "save all supporting files to disk (default: False)."
 # parse arguments from command line
 parser = argparse.ArgumentParser(description=PARSER_DESCRIPTION)
 parser.add_argument("-i", "--in", type=str, help=IN_HELP, dest="in_", metavar="IN")
-parser.add_argument("-o", "--output", type=str, help=OUT_HELP)
+parser.add_argument("-o", "--out", type=str, help=OUT_HELP)
 parser.add_argument(
     "-p", "--only-preprocessing", default=False, action="store_true", help=PREPROC_HELP
 )
@@ -117,7 +117,7 @@ for i in range(n_surf):
             )
 
     mvpa = MVPA.from_data(data_sampled, features_selected, events)
-    if args.verbose:
+    if args.verbose or args.only_preprocessing:
         mvpa.save_dataframe(dir_out / f"sample_data_{i}.parquet")
 
     # model preparation and fitting

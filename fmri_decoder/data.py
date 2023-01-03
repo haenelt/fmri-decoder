@@ -303,6 +303,14 @@ class DataConfig:
             config = {}
             try:
                 config = yaml.safe_load(yml)
+                _filter_size = (
+                    None if config["filter_size"] == "none" else config["filter_size"]
+                )
+                _file_deformation = (
+                    None
+                    if config["file_deformation"] == "none"
+                    else config["file_deformation"]
+                )
             except yaml.YAMLError as exc:
                 print(exc)
 
@@ -310,8 +318,8 @@ class DataConfig:
                 tr=config["TR"],
                 n_skip=config["n_skip"],
                 cutoff_sec=config["cutoff_sec"],
-                filter_size=config["filter_size"],
-                file_deformation=config["file_deformation"],
+                filter_size=_filter_size,
+                file_deformation=_file_deformation,
             )
 
 
@@ -327,7 +335,7 @@ class ModelConfig:
 
     """
 
-    nmax: int
+    nmax: Optional[int]
     radius: Optional[float]
     feature_scaling: Optional[str] = None  # min_max | standard | None
     sample_scaling: Optional[str] = None  # norm | standard | None
@@ -349,12 +357,24 @@ class ModelConfig:
             config = {}
             try:
                 config = yaml.safe_load(yml)
+                _nmax = None if config["nmax"] == "none" else config["nmax"]
+                _radius = None if config["radius"] == "none" else config["radius"]
+                _feature_scaling = (
+                    None
+                    if config["feature_scaling"] == "none"
+                    else config["feature_scaling"]
+                )
+                _sample_scaling = (
+                    None
+                    if config["sample_scaling"] == "none"
+                    else config["sample_scaling"]
+                )
             except yaml.YAMLError as exc:
                 print(exc)
 
             return cls(
-                nmax=config["nmax"],
-                radius=config["radius"],
-                feature_scaling=config["feature_scaling"],
-                sample_scaling=config["sample_scaling"],
+                nmax=_nmax,
+                radius=_radius,
+                feature_scaling=_feature_scaling,
+                sample_scaling=_sample_scaling,
             )

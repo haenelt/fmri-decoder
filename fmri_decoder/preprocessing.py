@@ -233,7 +233,7 @@ class TimeseriesSampling:
     """
 
     # number of iterations for bandpas filter size center frequency estimation.
-    N_ITER = 100
+    N_ITER = 1
 
     def __init__(
         self, vtx: np.ndarray, fac: np.ndarray, data: list[np.ndarray]
@@ -314,7 +314,7 @@ class TimeseriesSampling:
         return _data
 
     def save_timeseries(self, file_out: str | Path, run: int) -> None:
-        """Save sampled time series to disk. The numpy array is saved in hdf5 file
+        """Save sampled time series to disk. The numpy array is saved in .hdf5 file
         format.
 
         Args:
@@ -480,7 +480,7 @@ class FeatureSelection(SurfaceData):
         return self.features
 
     def save_features(self, file_out: str | Path) -> None:
-        """Save selected features as label file to disk.
+        """Save selected features as .label file to disk.
 
         Args:
             file_out: File name of written label file.
