@@ -69,14 +69,9 @@ print("=" * term_size.columns)
 dir_out = Path(args.out)
 dir_out.mkdir(parents=True, exist_ok=True)
 
-dir_res = dir_out / "res"
-dir_res.mkdir(parents=True, exist_ok=True)
-
+dir_sample = dir_out / "sample"
 dir_label = dir_out / "label"
 dir_model = dir_out / "model"
-if args.verbose:
-    dir_label.mkdir(parents=True, exist_ok=True)
-    dir_model.mkdir(parents=True, exist_ok=True)
 
 # load data
 time_data = TimeseriesData.from_yaml(args.in_)
@@ -89,6 +84,7 @@ features = FeatureSelection.from_yaml(args.in_)
 features_selected = features.sort_features(config_model.radius, config_model.nmax)
 if args.verbose:
     for hemi in ["lh", "rh"]:
+        dir_label.mkdir(parents=True, exist_ok=True)
         features.save_features(dir_label / f"{hemi}.features.label")
 
 # timeseries preprocessing
@@ -118,7 +114,8 @@ for i in range(n_surf):
 
     mvpa = MVPA.from_data(data_sampled, features_selected, events)
     if args.verbose or args.only_preprocessing:
-        mvpa.save_dataframe(dir_out / f"sample_data_{i}.parquet")
+        dir_sample.mkdir(parents=True, exist_ok=True)
+        mvpa.save_dataframe(dir_sample / f"sample_data_{i}.parquet")
 
     # model preparation and fitting
     if not args.only_preprocessing:
@@ -133,13 +130,14 @@ for i in range(n_surf):
             for fold in range(len(time_data.file_series)):
                 mvpa.check_balance(fold)
             # save model
+            dir_model.mkdir(parents=True, exist_ok=True)
             mvpa.save_model(dir_model / f"model_{i}.z")
             # show results
             mvpa.show_results("accuracy")
         # save results
-        mvpa.save_results(dir_res / "accuracy.csv", "accuracy")
-        mvpa.save_results(dir_res / "sensitivity.csv", "sensitivity")
-        mvpa.save_results(dir_res / "specificity.csv", "specificity")
-        mvpa.save_results(dir_res / "f1.csv", "f1")
+        mvpa.save_results(dir_out / "accuracy.csv", "accuracy")
+        mvpa.save_results(dir_out / "sensitivity.csv", "sensitivity")
+        mvpa.save_results(dir_out / "specificity.csv", "specificity")
+        mvpa.save_results(dir_out / "f1.csv", "f1")
 
 print("Done.")
