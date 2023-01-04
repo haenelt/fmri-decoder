@@ -31,16 +31,16 @@ sample_scaling: none  # sample normalization method: norm | standard | none
 # Realigned fmri time series. It is expected that individual time series are aligned to
 # each other.
 file_series:
-  - /home/daniel/ownCloud/data/func/run_1_bold.nii
-  - /home/daniel/ownCloud/data/func/run_2_bold.nii
-  - /home/daniel/ownCloud/data/func/run_3_bold.nii
-  - /home/daniel/ownCloud/data/func/run_4_bold.nii
-  - /home/daniel/ownCloud/data/func/run_5_bold.nii
-  - /home/daniel/ownCloud/data/func/run_6_bold.nii
-  - /home/daniel/ownCloud/data/func/run_7_bold.nii
-  - /home/daniel/ownCloud/data/func/run_8_bold.nii
-  - /home/daniel/ownCloud/data/func/run_9_bold.nii
-  - /home/daniel/ownCloud/data/func/run_10_bold.nii
+  - /home/daniel/ownCloud/data/func/run_1.nii
+  - /home/daniel/ownCloud/data/func/run_2.nii
+  - /home/daniel/ownCloud/data/func/run_3.nii
+  - /home/daniel/ownCloud/data/func/run_4.nii
+  - /home/daniel/ownCloud/data/func/run_5.nii
+  - /home/daniel/ownCloud/data/func/run_6.nii
+  - /home/daniel/ownCloud/data/func/run_7.nii
+  - /home/daniel/ownCloud/data/func/run_8.nii
+  - /home/daniel/ownCloud/data/func/run_9.nii
+  - /home/daniel/ownCloud/data/func/run_10.nii
 
 # Corresponding condition files. Events of each experimental condition (onsets, names, 
 # durations) are expected to be saved as a cell array in a .mat file format that is 

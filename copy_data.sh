@@ -34,8 +34,13 @@ mkdir -p $dir_loc
 for i in {1..10}
 do
     # time series data
-    file_data=$DIR_BASE/$subj/odc/$sess/Run_$i/udata.nii
-    cp $file_data $dir_func/run_${i}_bold.nii
+    if [[ $sess == *"VASO"* ]]
+    then
+        file_data=$DIR_BASE/$subj/odc/$sess/Run_$i/uvaso_upsampled_corrected.nii
+    else
+        file_data=$DIR_BASE/$subj/odc/$sess/Run_$i/udata.nii
+    fi
+    cp $file_data $dir_func/run_${i}.nii
 
     # condition logfiles
     file_cond=$DIR_BASE/$subj/odc/$sess/Run_$i/logfiles/${subj}_${sess}_Run${i}_odc_Cond.mat
