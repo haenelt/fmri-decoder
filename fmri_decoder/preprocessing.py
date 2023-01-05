@@ -432,7 +432,7 @@ class FeatureSelection(SurfaceData):
         data, hemisphere, label = self._get_data()
 
         # sort index array
-        index = np.arange(len(data))
+        index = np.arange(len(data), dtype=int)
         index_sorted = np.array([x for _, x in sorted(zip(data, index), reverse=True)])
         # sort hemisphere and label arrays
         tmp_hemi = hemisphere[index_sorted]
@@ -506,7 +506,7 @@ class FeatureSelection(SurfaceData):
         """Load localizer and label data.
 
         Returns:
-            Flattened list of localizer data, corresponding hemispheres, and
+            Flattened numpy arrays of localizer data, corresponding hemispheres, and
             corresponding vertex indices.
         """
         data = [self.load_localizer_average(hemi) for hemi in ["lh", "rh"]]
@@ -517,7 +517,7 @@ class FeatureSelection(SurfaceData):
         data = self._flatten(data)
         hemisphere = self._flatten(hemisphere)
         label = self._flatten(label)
-        return data, hemisphere, label
+        return np.array(data), np.array(hemisphere), np.array(label)
 
     @staticmethod
     def _flatten(lst: list) -> list:
