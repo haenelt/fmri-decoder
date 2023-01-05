@@ -432,9 +432,12 @@ class FeatureSelection(SurfaceData):
         data, hemisphere, label = self._get_data()
 
         # sort index array
-        tmp_hemi = np.array([x for _, x in sorted(zip(data, hemisphere), reverse=True)])
-        # sort label array
-        tmp_label = np.array([x for _, x in sorted(zip(data, label), reverse=True)])
+        index = np.arange(len(data))
+        index_sorted = np.array([x for _, x in sorted(zip(data, index), reverse=True)])
+        # sort hemisphere and label arrays
+        tmp_hemi = hemisphere[index_sorted]
+        tmp_label = label[index_sorted]
+
         # initialize corresponding coords from the first surface mesh in the list of
         # provided surfaces. This should correspond to the white matter surface if input
         # surface are sorted in cortical depth from deep to superficial layers.
