@@ -96,7 +96,7 @@ file_deformation: /home/daniel/ownCloud/data/ana/deform/transformation.nii.gz
 # *see https://github.com/haenelt/FmriTools/blob/master/fmri_tools/cmap/generate_coordinate_mapping.py
 # for comparison
 
-# MGH surface overlays for feature selection. Data points are selected by their 
+# MGH surface overlays for feature selection.* Data points are selected by their 
 # magnitude in the localizer overlay. When mutliple files are given, the average across 
 # overlays is first computed. Single hemispheres are given independently.
 file_localizer:
@@ -106,6 +106,9 @@ file_localizer:
   rh:
     - /home/daniel/ownCloud/data/loc/rh.localizer1.mgh
     - /home/daniel/ownCloud/data/loc/rh.localizer2.mgh
+# *if set to none/None, no feature selection is performed on an independent data set. 
+# If nmax is still selected, feature selection is based on ANOVA F-values of the
+# training data set and the best nmax features are taken.
 
 # FreeSurfer .label files to restrict data analysis to one cortical area (e.g. V1). When 
 # multiple files are given, the intersection of all labels is taken. Single hemispheres 

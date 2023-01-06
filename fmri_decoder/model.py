@@ -14,6 +14,7 @@ import pandas as pd
 from matplotlib.lines import Line2D
 from scipy.stats import gaussian_kde, shapiro
 from sklearn.datasets import load_iris
+from sklearn.feature_selection import f_classif
 from sklearn.svm import SVC
 
 plt.style.use(Path(__file__).parent / "default.mplstyle")
@@ -59,11 +60,6 @@ class MVPA:
         self.model_trained = model_trained  # trained svm model
         self.nmax = nmax
         self.y_predict: Optional[list] = None  # predicted classification
-
-        if self.nmax:
-            if len(self.dtf.columns) < 2 + self.nmax:
-                raise ValueError("Not enough features available!")
-            self.dtf.drop(self.dtf.columns[2 + self.nmax :], inplace=True, axis=1)
 
     @property
     def n_batch(self) -> int:
@@ -200,6 +196,31 @@ class MVPA:
                 )
         plt.show()
 
+    def select_features(self, fold: int) -> list:
+        """Select nmax best features based on ANOVA F-values of the training sample.
+
+        Args:
+            fold: Select the fold to be analyzed.
+
+        Raises:
+            ValueError: If not enough features are available.
+
+        Returns:
+            List of selected feature names.
+        """
+        if self.nmax and len(self.dtf.columns) < 2 + self.nmax:
+            raise ValueError("Not enough features available or nmax is not set!")
+        X_train = np.array(self.dtf.loc[self.dtf["batch"] != fold, self.feature_names])
+        y_train = np.array(self.dtf.loc[self.dtf["batch"] != fold, "label"])
+
+        f_statistic = f_classif(X_train, y_train)[0]
+        index = np.arange(len(self.feature_names))
+        index_sorted = np.array(
+            [x for _, x in sorted(zip(f_statistic, index), reverse=True)]
+        )
+        index_sorted = index_sorted[: self.nmax]
+        return [self.feature_names[i] for i in index_sorted]
+
     def scale_features(self, method: str) -> None:
         """Scale features per fold. Within one fold, each feature is scaled
         independently.
@@ -266,7 +287,11 @@ class MVPA:
         self.model_trained = []
         for i in range(self.n_batch):
             model = SVC(C=MVPA.C, kernel=MVPA.kernel)
-            X_train = np.array(self.dtf.loc[self.dtf["batch"] != i, self.feature_names])
+            if self.nmax:
+                _feature_names = self.select_features(i)
+            else:
+                _feature_names = self.feature_names
+            X_train = np.array(self.dtf.loc[self.dtf["batch"] != i, _feature_names])
             y_train = np.array(self.dtf.loc[self.dtf["batch"] != i, "label"])
             self.model_trained.append(model.fit(X_train, y_train))
         return self.model_trained
@@ -292,7 +317,11 @@ class MVPA:
             dtf = self.dtf.copy()
         self.y_predict = []
         for i in range(self.n_batch):
-            X_test = np.array(dtf.loc[dtf["batch"] == i, self.feature_names])
+            if self.nmax:
+                _feature_names = self.select_features(i)
+            else:
+                _feature_names = self.feature_names
+            X_test = np.array(dtf.loc[dtf["batch"] == i, _feature_names])
             self.y_predict.append(self.model_trained[i].predict(X_test))
         return self.y_predict
 
@@ -517,13 +546,12 @@ class MVPA:
         return cls(dtf, model, nmax)
 
     @classmethod
-    def from_data(
+    def from_selected_data(
         cls,
         data: dict,
         features: dict,
         label: list[np.ndarray],
         model_trained: Optional[list] = None,
-        nmax: Optional[int] = None,
     ):
         """Alternative contructor for MVPA from a loaded data dictionary. Data from
         single hemispheres are separated in the dictionary by the keys lh and rh. The
@@ -536,7 +564,6 @@ class MVPA:
             features: Selected features.
             label: List of class label arrays.
             model_trained: List of already fitted models. Defaults to None.
-            nmax: Number of considered features (data points). Defaults to None.
         """
         n_features = len(features["label"])
         columns = ["batch", "label"] + [f"feature {i}" for i in range(n_features)]
@@ -550,6 +577,38 @@ class MVPA:
                 idx = np.array(features["label"][features["hemi"] == j], dtype=int)
                 arr_tmp[:, features["hemi"] == j] = data[hemi][i][idx, :].T
             arr[:, 2:] = arr_tmp[:, :n_features]
+            dtf = pd.concat([dtf, pd.DataFrame(arr, columns=columns)])
+
+        dtf["batch"] = dtf["batch"].astype(int)
+        dtf["label"] = dtf["label"].astype(int)
+
+        return cls(dtf, model_trained, None)
+
+    @classmethod
+    def from_data(
+        cls,
+        data: dict,
+        label: list[np.ndarray],
+        model_trained: Optional[list] = None,
+        nmax: Optional[int] = None,
+    ):
+        """Alternative contructor for MVPA from a loaded data dictionary. Data from
+        single hemispheres are separated in the dictionary by the keys lh and rh.
+
+        Args:
+            data: Data arrays.
+            label: List of class label arrays.
+            model_trained: List of already fitted models. Defaults to None.
+            nmax: Number of considered features (data points). Defaults to None.
+        """
+        n_features = np.size(data["lh"][0], 0) + np.size(data["rh"][0], 0)
+        columns = ["batch", "label"] + [f"feature {i}" for i in range(n_features)]
+        dtf = pd.DataFrame(columns=columns)
+        for i, y in enumerate(label):
+            arr = np.zeros((len(y), n_features + 2))
+            arr[:, 0] = i
+            arr[:, 1] = y - 1  # rescale class labels [1, 2] -> [0, 1]
+            arr[:, 2:] = np.concatenate((data["lh"][i], data["rh"][i])).T
             dtf = pd.concat([dtf, pd.DataFrame(arr, columns=columns)])
 
         dtf["batch"] = dtf["batch"].astype(int)

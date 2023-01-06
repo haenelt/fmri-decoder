@@ -80,12 +80,14 @@ config_data = DataConfig.from_yaml(args.in_)
 config_model = ModelConfig.from_yaml(args.in_)
 
 # features selection
-features = FeatureSelection.from_yaml(args.in_)
-features_selected = features.sort_features(config_model.radius, config_model.nmax)
-if args.verbose:
-    for hemi in ["lh", "rh"]:
-        dir_label.mkdir(parents=True, exist_ok=True)
-        features.save_features(dir_label / f"{hemi}.features.label")
+features_selected = dict()
+if surf_data.file_localizer is not None:
+    features = FeatureSelection.from_yaml(args.in_)
+    features_selected = features.sort_features(config_model.radius, config_model.nmax)
+    if args.verbose:
+        for hemi in ["lh", "rh"]:
+            dir_label.mkdir(parents=True, exist_ok=True)
+            features.save_features(dir_label / f"{hemi}.features.label")
 
 # timeseries preprocessing
 preproc = TimeseriesPreproc.from_yaml(args.in_)
@@ -112,7 +114,15 @@ for i in range(n_surf):
                 label, config_data.filter_size
             )
 
-    mvpa = MVPA.from_data(data_sampled, features_selected, events)
+    if surf_data.file_localizer is not None:
+        mvpa = MVPA.from_selected_data(data_sampled, features_selected, events)
+    else:
+        for hemi in ["lh", "rh"]:
+            label = surf_data.load_label_intersection(hemi)
+            data_sampled[hemi] = [
+                data_sampled[hemi][x][label, :] for x in range(len(data_sampled[hemi]))
+            ]
+        mvpa = MVPA.from_data(data_sampled, events, nmax=config_model.nmax)
     if args.verbose or args.only_preprocessing:
         dir_sample.mkdir(parents=True, exist_ok=True)
         mvpa.save_dataframe(dir_sample / f"sample_data_{i}.parquet")

@@ -141,9 +141,14 @@ class SurfaceData:
             hemi: Hemisphere
             sess: Selected file from the list of input localizers.
 
+        Raises:
+            ValueError: If no localizer files are set in configuration.
+
         Returns:
             Array of vertex-wise data points.
         """
+        if not self.file_localizer:
+            raise ValueError("Localizer files not set!")
         return read_mgh(self.file_localizer[hemi][sess])[0]
 
     def load_localizer_average(self, hemi: str) -> np.ndarray:
@@ -153,9 +158,14 @@ class SurfaceData:
         Args:
             hemi: Hemisphere
 
+        Raises:
+            ValueError: If no localizer files are set in configuration.
+
         Returns:
             Array of vertex-wise data points.
         """
+        if not self.file_localizer:
+            raise ValueError("Localizer files not set!")
         data = np.zeros(len(self.load_layer(hemi, 0)[0]))
         n_files = len(self.file_localizer[hemi])
         for i in range(n_files):
@@ -240,14 +250,15 @@ class SurfaceData:
         self._file_layer = fl_
 
     @property
-    def file_localizer(self) -> dict:
+    def file_localizer(self) -> Optional[dict]:
         """Get file localizers."""
         return self._file_localizer
 
     @file_localizer.setter
-    def file_localizer(self, fl_: dict) -> None:
+    def file_localizer(self, fl_: Optional[dict]) -> None:
         """Set file localizers."""
-        if self._compare(fl_["lh"], fl_["rh"]):
+        fl_ = None if fl_ == "none" else fl_
+        if fl_ and self._compare(fl_["lh"], fl_["rh"]):
             raise ValueError("Localizers in left and right hemisphere do not match!")
         self._file_localizer = fl_
 
