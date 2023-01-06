@@ -106,9 +106,9 @@ file_localizer:
   rh:
     - /home/daniel/ownCloud/data/loc/rh.localizer1.mgh
     - /home/daniel/ownCloud/data/loc/rh.localizer2.mgh
-# *if set to none/None, no feature selection is performed on an independent data set. 
-# If nmax is still selected, feature selection is based on ANOVA F-values of the
-# training data set and the best nmax features are taken.
+# *if set to none/None, no feature selection is performed based on an independent data 
+# set. If nmax is still selected, feature selection will be based on ANOVA F-values of 
+# the training data set and the best nmax features will be taken.
 
 # FreeSurfer .label files to restrict data analysis to one cortical area (e.g. V1). When 
 # multiple files are given, the intersection of all labels is taken. Single hemispheres 

@@ -22,10 +22,11 @@ PARSER_DESCRIPTION = (
     "preprocessed and sampled onto a surface mesh. Multiple surfaces can be used as "
     "input to analyze the decoding performace across cortical depth. Features "
     "(vertices within a region of interest) are selected based on separate localizer "
-    "data. Samples are single fMRI time series points and transient responses between "
-    "experimental condition are neglected. Optionally, a spatial bandpass filter "
-    "(Laplacian of Gaussian) can be applied to individual samples. Please be aware "
-    "that multiple files are written to disk."
+    "data. If no localizer data is given, features are selected based on ANOVA F "
+    "values of the training sample. Samples are single fMRI time series points and "
+    "transient responses between experimental conditions are neglected. Optionally, a "
+    "spatial bandpass filter (Laplacian of Gaussian) can be applied to individual "
+    "samples. Please be aware that multiple files are written to disk."
 )
 IN_HELP = (
     "file name of a yaml configuration file that contains all selected parameters and "
