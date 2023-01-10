@@ -1,6 +1,8 @@
 #!/bin/bash
 # This is small script that copies all necessary input data of my ocular dominance 
-# columns project and stores it into a common output directory. 
+# columns project and stores it into a common output directory. Valid session names are
+# GE_EPI<n>, SE_EPI<n>, VASO<n> or BOLD<n>. When BOLD is selected, the not-nulled time 
+# series from the VASO measurement is taken.
 # 
 # copy_data <subj> <sess> <dir_out>
 # 
@@ -37,6 +39,10 @@ do
     if [[ $sess == *"VASO"* ]]
     then
         file_data=$DIR_BASE/$subj/odc/$sess/Run_$i/uvaso_upsampled_corrected.nii
+    elif [[ $sess == *"BOLD"*]]
+    then
+        sess_number=$(echo $sess | tr -dc '0-9')
+        file_data=$DIR_BASE/$subj/odc/VASO$sess_number/Run_$i/ubold_updasmpled.nii
     else
         file_data=$DIR_BASE/$subj/odc/$sess/Run_$i/udata.nii
     fi
