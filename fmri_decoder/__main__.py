@@ -86,7 +86,7 @@ config_data = DataConfig.from_yaml(args.in_)
 config_model = ModelConfig.from_yaml(args.in_)
 
 # features selection
-features_selected = dict()
+features_selected = {}
 if surf_data.file_localizer is not None:
     features = FeatureSelection.from_yaml(args.in_)
     features_selected = features.sort_features(config_model.radius, config_model.nmax)
