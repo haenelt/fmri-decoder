@@ -297,9 +297,10 @@ class TimeseriesSampling:
         print("Filter timeseries ...")
         # check dimensions
         mesh = Mesh(self.verts, self.faces)
-        surf_roi = mesh.remove_vertices(label)
+        surf_roi = mesh.remove_vertices(label, create_ind=True)
         verts = surf_roi[0]
         faces = surf_roi[1]
+        label = surf_roi[2]
         _res: Any = Parallel(n_jobs=NUM_CORES)(
             delayed(self._filter)(verts, faces, filter_size, _d[label])
             for _d in self.data_sampled
@@ -372,8 +373,11 @@ class TimeseriesSampling:
     ) -> np.ndarray:
         """Helper function for time series filtering used for parallelization
         purposes."""
+        res = np.zeros_like(arr_sampled)
         filt = LaplacianGaussian(verts, faces, filter_size)
-        return filt.apply(arr_sampled)
+        for n in range(np.size(arr_sampled, 1)):
+            res[:, n] = filt.apply(arr_sampled[:, n])
+        return res
 
 
 class FeatureSelection(SurfaceData):

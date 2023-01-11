@@ -128,7 +128,9 @@ for i in range(n_surf):
             data_sampled[hemi] = [
                 data_sampled[hemi][x][label, :] for x in range(len(data_sampled[hemi]))
             ]
-        mvpa = MVPA.from_data(data_sampled, events, nmax=config_model.nmax)
+        mvpa = MVPA.from_data(
+            data_sampled, events, nmax=config_model.nmax, remove_nan=True
+        )
     if args.verbose or args.only_preprocessing:
         dir_sample.mkdir(parents=True, exist_ok=True)
         mvpa.save_dataframe(dir_sample / f"sample_data_{i}.parquet")

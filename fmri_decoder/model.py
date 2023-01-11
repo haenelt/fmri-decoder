@@ -687,6 +687,7 @@ class MVPA:
         label: list[np.ndarray],
         model_trained: Optional[list] = None,
         nmax: Optional[int] = None,
+        remove_nan: bool = False,
     ):
         """Alternative contructor for MVPA from a loaded data dictionary. Data from
         single hemispheres are separated in the dictionary by the keys lh and rh.
@@ -696,7 +697,14 @@ class MVPA:
             label: List of class label arrays.
             model_trained: List of already fitted models. Defaults to None.
             nmax: Number of considered features (data points). Defaults to None.
+            remove_nan: Discard non-numeric columns in data.
         """
+        if remove_nan is True:
+            for hemi in ["lh", "rh"]:
+                ind = np.sum(data[hemi], axis=(0, 2))
+                data[hemi] = [
+                    data[hemi][x][~np.isnan(ind), :] for x in range(len(data[hemi]))
+                ]
         n_features = np.size(data["lh"][0], 0) + np.size(data["rh"][0], 0)
         columns = ["batch", "label"] + [f"feature {i}" for i in range(n_features)]
         dtf = pd.DataFrame(columns=columns)
