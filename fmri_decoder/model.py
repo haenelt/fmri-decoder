@@ -196,11 +196,13 @@ class MVPA:
                 )
         plt.show()
 
-    def select_features(self, fold: int) -> list:
+    def select_features(self, fold: int, y_train: Optional[np.ndarray] = None) -> list:
         """Select nmax best features based on ANOVA F-values of the training sample.
 
         Args:
             fold: Select the fold to be analyzed.
+            y_train: Alternative class label, e.g. for estimation of a null distribution
+            using shuffled sampled. Defaults to None.
 
         Raises:
             ValueError: If not enough features are available.
@@ -211,7 +213,8 @@ class MVPA:
         if self.nmax and len(self.dtf.columns) < 2 + self.nmax:
             raise ValueError("Not enough features available or nmax is not set!")
         X_train = np.array(self.dtf.loc[self.dtf["batch"] != fold, self.feature_names])
-        y_train = np.array(self.dtf.loc[self.dtf["batch"] != fold, "label"])
+        if y_train is None:
+            y_train = np.array(self.dtf.loc[self.dtf["batch"] != fold, "label"])
 
         f_statistic = f_classif(X_train, y_train)[0]
         index = np.arange(len(self.feature_names))
@@ -354,6 +357,60 @@ class MVPA:
         res = namedtuple("res", ["accuracy", "sensitivity", "specificity", "f1"])
         return res(accuracy, sensitivity, specificity, f1)
 
+    def null_dist(self, n_iter: int = 1000) -> NamedTuple:
+        """Generate a null distribution for each fold by permutation of class labels. It
+        should be kept in mind that this method ignores any autocorrealtion in the
+        fmri time series signal.
+
+        Args:
+            n_iter: Number of permutation iterations. Defaults to 1000.
+
+        Returns:
+            NamedTuple collecting outputs under the following fields
+
+            * accuracy : null distributions for accuracy score.
+            * sensitivity : null distribution for true positive rate.
+            * specificity : null distribution for true negative rate.
+            * f1 : null distritbution for balanced F-measure.
+        """
+        null_accuracy = np.zeros((n_iter, self.n_batch))
+        null_sensitivity = np.zeros((n_iter, self.n_batch))
+        null_specificity = np.zeros((n_iter, self.n_batch))
+        null_f1 = np.zeros((n_iter, self.n_batch))
+        for i in range(n_iter):
+            # initialize svm model
+            model = SVC(C=MVPA.C, kernel=MVPA.kernel)
+
+            # shuffle class labels within each fold
+            _y = np.empty(shape=0)
+            for j in range(self.n_batch):
+                y_batch = np.array(self.dtf.loc[self.dtf["batch"] == j, "label"])
+                np.random.shuffle(y_batch)
+                _y = np.append(_y, y_batch)
+
+            for j in range(self.n_batch):
+                y_train = _y[self.dtf["batch"] != j]
+                y_test = _y[self.dtf["batch"] == j]
+                # select features
+                if self.nmax:
+                    _feature_names = self.select_features(j, y_train)
+                else:
+                    _feature_names = self.feature_names
+                # training
+                X_train = np.array(self.dtf.loc[self.dtf["batch"] != j, _feature_names])
+                model_trained = model.fit(X_train, y_train)
+                # testing
+                X_test = np.array(self.dtf.loc[self.dtf["batch"] == j, _feature_names])
+                y_predict = model_trained.predict(X_test)
+                # get score
+                null_accuracy[i, j] = self._accuracy(y_test, y_predict)
+                null_sensitivity[i, j] = self._sensitivity(y_test, y_predict)
+                null_specificity[i, j] = self._specificity(y_test, y_predict)
+                null_f1[i, j] = self._f1(y_test, y_predict)
+
+        res = namedtuple("res", ["accuracy", "sensitivity", "specificity", "f1"])
+        return res(null_accuracy, null_sensitivity, null_specificity, null_f1)
+
     @property
     def evaluate(self) -> NamedTuple:
         """Train and test the model using a cross-validation procedure in one row.
@@ -365,11 +422,33 @@ class MVPA:
         _ = self.predict()
         return self.scores
 
+    def evaluate_stats(self, n_iter: int = 1000, metric: str = "accuracy"):
+        """Tests mean (across folds) scoring metric for statistical significance. A null
+        distribution is generated using permutation sampling based on which a one-sided
+        p-value is computed.
+
+        Args:
+            n_iter: Number of permutation iterations. Defaults to 1000.
+            metric: Selected metric (accuracy, sensitivity, specificity, f1). Defaults
+            to "accuracy".
+
+        Returns:
+            One-sided p-value.
+        """
+        _ = self.fit
+        _ = self.predict()
+        score = self.scores
+        null = self.null_dist(n_iter)  # generate null distribution
+        res = np.mean(getattr(score, metric))  # average score
+        res_null = np.mean(getattr(null, metric), axis=1)  # average null distribution
+        return len(res_null[res_null > res]) / n_iter
+
     def show_results(self, metric: str = "accuracy") -> None:
         """Print metric to console.
 
         Args:
-            metric: Selected metric. Defaults to "accuracy".
+            metric: Selected metric (accuracy, sensitivity, specificity, f1). Defaults
+            to "accuracy".
         """
         res = self.scores
         print(f"{metric} (mean): {np.mean(getattr(res, metric)):.6f}")
@@ -381,12 +460,29 @@ class MVPA:
 
         Args:
             file_out: File name of written file.
-            metric: Selected metric. Defaults to "accuracy".
+            metric: Selected metric (accuracy, sensitivity, specificity, f1). Defaults
+            to "accuracy".
         """
         res = self.scores
         with open(file_out, "a", encoding="utf-8") as fid:
             writer = csv.writer(fid)  # create the csv writer
             writer.writerow(getattr(res, metric))  # append a row
+
+    def save_stats(
+        self, file_out: str | Path, n_iter: int = 1000, metric: str = "accuracy"
+    ) -> None:
+        """Save one-sided p-value for scoring metric to disc (*csv file format). Note
+        that data is appended to the file if already exists.
+
+        Args:
+            file_out: File name of written file.
+            n_iter: Number of permutation iterations. Defaults to 1000.
+            metric: Selected metric (accuracy, sensitivity, specificity, f1). Defaults
+            to "accuracy".
+        """
+        with open(file_out, "a", encoding="utf-8") as fid:
+            writer = csv.writer(fid)  # create the csv writer
+            writer.writerow([self.evaluate_stats(n_iter, metric)])
 
     def save_model(self, file_out: str | Path) -> None:
         """Dump list of fitted models (*.z file format) to disk.

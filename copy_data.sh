@@ -1,15 +1,16 @@
 #!/bin/bash
 # This is small script that copies all necessary input data of my ocular dominance 
 # columns project and stores it into a common output directory. Valid session names are
-# GE_EPI<n>, SE_EPI<n>, VASO<n> or BOLD<n>. When BOLD is selected, the not-nulled time 
-# series from the VASO measurement is taken.
+# GE_EPI<n>, SE_EPI<n> or VASO<n>. When notnulled is set to notnulled, the not-nulled 
+# time series from the VASO measurement is copied.
 # 
 # copy_data <subj> <sess> <dir_out>
 # 
 # Args:
-#   subj    - subject name.
-#   sess    - session name.
-#   dir_out - Output directory.
+#   subj      - subject name.
+#   sess      - session name.
+#   dir_out   - output directory.
+#   notnulled - use notnulled bold time series from vaso session.
 #
 
 # base directory on my workstation
@@ -19,6 +20,14 @@ DIR_BASE="/data/pt_01880/Experiment1_ODC"
 subj=$1
 sess=$2
 dir_out=$3
+notnulled=$4
+
+if [[ -n $notnulled  && $notnulled == "notnulled" ]]
+then
+    use_bold=true
+else
+    use_bold=false
+fi
 
 dir_surf=$dir_out/ana/surf
 dir_deform=$dir_out/ana/deform
@@ -38,11 +47,12 @@ do
     # time series data
     if [[ $sess == *"VASO"* ]]
     then
-        file_data=$DIR_BASE/$subj/odc/$sess/Run_$i/uvaso_upsampled_corrected.nii
-    elif [[ $sess == *"BOLD"*]]
-    then
-        sess_number=$(echo $sess | tr -dc '0-9')
-        file_data=$DIR_BASE/$subj/odc/VASO$sess_number/Run_$i/ubold_updasmpled.nii
+        if $use_bold
+        then
+            file_data=$DIR_BASE/$subj/odc/$sess/Run_$i/ubold_upsampled.nii
+        else
+            file_data=$DIR_BASE/$subj/odc/$sess/Run_$i/uvaso_upsampled_corrected.nii
+        fi
     else
         file_data=$DIR_BASE/$subj/odc/$sess/Run_$i/udata.nii
     fi

@@ -38,6 +38,7 @@ PREPROC_HELP = (
     "(default: False)."
 )
 VERB_HELP = "save all supporting files to disk (default: False)."
+STATS_HELP = "save p-value from permutation testing (default: False)."
 
 # parse arguments from command line
 parser = argparse.ArgumentParser(description=PARSER_DESCRIPTION)
@@ -48,6 +49,9 @@ parser.add_argument(
 )
 parser.add_argument(
     "-v", "--verbose", default=False, action="store_true", help=VERB_HELP
+)
+parser.add_argument(
+    "-s", "--stats", default=False, action="store_true", help=STATS_HELP
 )
 args = parser.parse_args()
 
@@ -65,6 +69,7 @@ print("=" * term_size.columns)
 # args.out
 # args.only_preprocessing
 # args.verbose
+# args.stats
 
 # make output directory
 dir_out = Path(args.out)
@@ -150,5 +155,13 @@ for i in range(n_surf):
         mvpa.save_results(dir_out / "sensitivity.csv", "sensitivity")
         mvpa.save_results(dir_out / "specificity.csv", "specificity")
         mvpa.save_results(dir_out / "f1.csv", "f1")
+
+    # compute p-value by permutation sampling and save to disk
+    N_ITER = 1000
+    if args.stats:
+        mvpa.save_stats(dir_out / "pval_accuracy.csv", N_ITER, "accuracy")
+        mvpa.save_stats(dir_out / "pval_sensitivity.csv", N_ITER, "sensitivity")
+        mvpa.save_stats(dir_out / "pval_specificity.csv", N_ITER, "specificity")
+        mvpa.save_stats(dir_out / "pval_f1.csv", N_ITER, "f1")
 
 print("Done.")
