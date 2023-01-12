@@ -216,13 +216,22 @@ class MVPA:
         if y_train is None:
             y_train = np.array(self.dtf.loc[self.dtf["batch"] != fold, "label"])
 
+        # discard features with non-numeric values
+        _feature_index = np.sum(X_train, axis=0)
+        _feature_names = [
+            feat
+            for feat, idx in zip(self.feature_names, _feature_index)
+            if np.isfinite(idx)
+        ]
+        X_train = np.array(self.dtf.loc[self.dtf["batch"] != fold, _feature_names])
+
         f_statistic = f_classif(X_train, y_train)[0]
-        index = np.arange(len(self.feature_names))
+        index = np.arange(len(_feature_names))
         index_sorted = np.array(
             [x for _, x in sorted(zip(f_statistic, index), reverse=True)]
         )
         index_sorted = index_sorted[: self.nmax]
-        return [self.feature_names[i] for i in index_sorted]
+        return [_feature_names[i] for i in index_sorted]
 
     def scale_features(self, method: str) -> None:
         """Scale features per fold. Within one fold, each feature is scaled
@@ -237,6 +246,7 @@ class MVPA:
         """
         for i in range(self.n_batch):
             data = self.dtf.loc[self.dtf["batch"] == i, self.feature_names]
+
             min_ = np.tile(np.min(data, axis=0), (len(data), 1))
             max_ = np.tile(np.max(data, axis=0), (len(data), 1))
             mu_ = np.tile(np.mean(data, axis=0), (len(data), 1))
@@ -705,6 +715,7 @@ class MVPA:
                 data[hemi] = [
                     data[hemi][x][~np.isnan(ind), :] for x in range(len(data[hemi]))
                 ]
+
         n_features = np.size(data["lh"][0], 0) + np.size(data["rh"][0], 0)
         columns = ["batch", "label"] + [f"feature {i}" for i in range(n_features)]
         dtf = pd.DataFrame(columns=columns)

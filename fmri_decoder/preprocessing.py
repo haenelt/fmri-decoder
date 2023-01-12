@@ -305,10 +305,9 @@ class TimeseriesSampling:
             delayed(self._filter)(verts, faces, filter_size, _d[label])
             for _d in self.data_sampled
         )
-        _data0 = np.empty_like(self.data_sampled[0])
         _data: list[np.ndarray] = []
         for d in _res:
-            _data0[:] = np.nan
+            _data0 = np.empty_like(self.data_sampled[0])
             _data0[label] = d
             _data.append(_data0)
         self.data_sampled = _data
