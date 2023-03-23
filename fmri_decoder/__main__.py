@@ -6,6 +6,8 @@ import argparse
 import os
 from pathlib import Path
 
+import numpy as np
+
 import fmri_decoder
 from fmri_decoder.data import DataConfig, ModelConfig, SurfaceData, TimeseriesData
 from fmri_decoder.model import MVPA
@@ -101,6 +103,10 @@ preproc = TimeseriesPreproc.from_yaml(args.in_)
 _ = preproc.detrend_timeseries(config_data.tr, config_data.cutoff_sec)
 # crop time series
 data_vol, events = preproc.crop_data(config_data.n_skip)
+
+# control condition: randomize labels
+if config_model["randomize_labels"]:
+    events = [np.random.shuffle(i) for i in events]
 
 # iterate over surfaces (layers)
 n_surf = len(surf_data.file_layer["lh"])

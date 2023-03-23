@@ -343,6 +343,7 @@ class ModelConfig:
         radius: Minimum distance between selected features.
         feature_scaling: Feature scaling method. Defaults to None.
         sample_scaling: Sample scaling method. Defaults to None.
+        randomize_labels: Shuffle labels.
 
     """
 
@@ -350,6 +351,7 @@ class ModelConfig:
     radius: Optional[float]
     feature_scaling: Optional[str] = None  # min_max | standard | None
     sample_scaling: Optional[str] = None  # norm | standard | None
+    randomize_labels: bool = False
 
     @classmethod
     def from_dict(cls, data_dict: dict):
@@ -359,6 +361,7 @@ class ModelConfig:
             radius=data_dict["radius"],
             feature_scaling=data_dict["feature_scaling"],
             sample_scaling=data_dict["sample_scaling"],
+            randomize_labels=data_dict["randomize_labels"],
         )
 
     @classmethod
@@ -388,4 +391,5 @@ class ModelConfig:
                 radius=_radius,
                 feature_scaling=_feature_scaling,
                 sample_scaling=_sample_scaling,
+                randomize_labels=config["randomize_labels"],
             )

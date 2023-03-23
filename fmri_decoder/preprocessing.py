@@ -509,8 +509,8 @@ class FeatureSelection(SurfaceData):
         """Load localizer and label data.
 
         Returns:
-            Flattened numpy arrays of localizer data, corresponding hemispheres, and
-            corresponding vertex indices.
+            Flattened numpy arrays of localizer data, corresponding hemispheres, +
+            corresponding vertex indices and corresponding z-coordinates.
         """
         data = [self.load_localizer_average(hemi) for hemi in ["lh", "rh"]]
         label = [self.load_label_intersection(hemi) for hemi in ["lh", "rh"]]

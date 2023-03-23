@@ -120,3 +120,6 @@ file_label:
   rh:
     - /home/daniel/ownCloud/data/ana/label/rh.v1.label
     - /home/daniel/ownCloud/data/ana/label/rh.fov.label
+
+# parameters for control conditions
+randomize_labels: false
