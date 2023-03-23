@@ -60,7 +60,7 @@ args = parser.parse_args()
 # run
 term_size = os.get_terminal_size()
 print("=" * term_size.columns)
-print("FMRI DECODER\n".center(term_size.columns))
+print("FMRI DECODER2\n".center(term_size.columns))
 print(f"author: {fmri_decoder.__author__}")
 print(f"version: {fmri_decoder.__version__}")
 print("=" * term_size.columns)
@@ -105,8 +105,9 @@ _ = preproc.detrend_timeseries(config_data.tr, config_data.cutoff_sec)
 data_vol, events = preproc.crop_data(config_data.n_skip)
 
 # control condition: randomize labels
-if config_model["randomize_labels"]:
-    events = [np.random.shuffle(i) for i in events]
+if config_model.randomize_labels:
+    for i in events:
+        np.random.shuffle(i)
 
 # iterate over surfaces (layers)
 n_surf = len(surf_data.file_layer["lh"])
