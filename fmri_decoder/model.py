@@ -17,6 +17,8 @@ from sklearn.datasets import load_iris
 from sklearn.feature_selection import f_classif
 from sklearn.svm import SVC
 
+__all__ = ["MVPA"]
+
 plt.style.use(Path(__file__).parent / "default.mplstyle")
 
 

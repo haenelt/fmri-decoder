@@ -60,7 +60,7 @@ args = parser.parse_args()
 # run
 term_size = os.get_terminal_size()
 print("=" * term_size.columns)
-print("FMRI DECODER2\n".center(term_size.columns))
+print("FMRI DECODER\n".center(term_size.columns))
 print(f"author: {fmri_decoder.__author__}")
 print(f"version: {fmri_decoder.__version__}")
 print("=" * term_size.columns)

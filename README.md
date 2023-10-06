@@ -31,7 +31,7 @@ python -m fmri_decoder --in <yaml_file> --out <output directory>
 
 | Flags   | Description |
 |---------|-------------|
-| --in  | The location of a .yaml file that contains all input file names and parameter settings. Fruther information about the configuration is given in the exemplary yaml file in the root directory of this repository [config_decoder.yaml](https://github.com/haenelt/fmri-decoder/blob/main/config_decoder.yaml). |
+| --in  | The location of a .yaml file that contains all input file names and parameter settings. Further information about the configuration is given in the exemplary yaml file in the root directory of this repository [config_decoder.yaml](https://github.com/haenelt/fmri-decoder/blob/main/config_decoder.yaml). |
 | --out | The location of the output directory to which results are written. |
 | --only-preprocessing | Do not perform MVPA analysis and only perform preprocessing steps. A pandas dataframe preprocessed data will be saved to disk. Defaults to False. |
 | --verbose | Dump out additional files and print more information to the console. Defaults to False. |
