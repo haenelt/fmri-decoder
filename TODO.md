@@ -1,7 +1,7 @@
-- [ ] TimeseriesPreproc: parse_events for rivalry
-- [ ] TimeseriesPreproc: crop_data with n_skip=0?
-- [ ] MVPA: hyperparameter tuning
-- [ ] MVPA: nested cross-validation (hrf)
-- [ ] update changelog
-- [ ] update readme
-- [ ] add tests
+- [ ] model -> BasicMVPA (ABC)
+- [ ] model -> MVPA inherited from BasicMVPA
+- [ ] model -> TunedMVPA inherited from MVPA with hyperparameter tuning (nested cross-validation)
+- [ ] model -> HrfMVPA inheretited from MVPA with hyperparameter tuning and hrf selection
+- [ ] TimeseriesPreprocRivalry -> override parse_events for rivalry (convolve with hrf)
+- [ ] TimeseriesPreproc -> check crop_data with n_skip=0
+- [ ] script like main.py for rivalry analysis
