@@ -24,10 +24,10 @@ from fmri_decoder.data import SurfaceData, TimeseriesData
 
 __all__ = [
     "TimeseriesPreproc",
+    "TimeseriesPreprocRivalry",
     "TimeseriesSampling",
     "FeatureSelection",
 ]
-
 
 # number of cores for parallel processing
 NUM_CORES = multiprocessing.cpu_count()
@@ -213,6 +213,21 @@ class TimeseriesPreproc(TimeseriesData):
         if tr_ <= 0.0:
             raise ValueError("TR must be greater than zero!")
         self._tr = tr_
+
+
+class TimeseriesPreprocRivalry(TimeseriesPreproc):
+    """Bla"""
+
+    def parse_events(self, onsets: list[Any], durations: list[Any]) -> np.ndarray:
+        """Transform information from the condition array into a label vector.
+
+        Args:
+            onsets: Nested list with onset times for each experimental condition.
+            durations: Nested list with durations for each experimental condition.
+
+        Returns:
+            Label vector that indicates the experimental condition for each fmri volume.
+        """
 
 
 class TimeseriesSampling:

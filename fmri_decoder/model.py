@@ -17,7 +17,7 @@ from sklearn.datasets import load_iris
 from sklearn.feature_selection import f_classif
 from sklearn.svm import SVC
 
-__all__ = ["MVPA"]
+__all__ = ["MVPA", "TunedMVPA", "HrfMVPA"]
 
 plt.style.use(Path(__file__).parent / "default.mplstyle")
 
@@ -816,3 +816,79 @@ class MVPA:
             raise ValueError("Please check feature names!")
 
         self._dtf = df_
+
+
+class TunedMVPA(MVPA):
+    """Multi-voxel pattern analysis (MVPA) with hyperparameter tuning.
+
+    This class performs binary classification on fmri time series data sampled onto a
+    surface mesh. A dataframe is loaded which is used for fitting and predicting using a
+    leave-one-run-out cross-validataion procedure. The dataframe must contain the
+    following columns: batch, label, feature 0, feature 1, ...
+    The batch column assigns each row its corresponding fold, i.e., folds are already
+    set while loading and no random splitting ist performed. This is done to prevent
+    any information leakage due to finite auto-correlation in time series data. The
+    label column contains class labels for binary classification. These are expected to
+    be either 0 or 1. All other columns (feature 0, feature 1, ...) contain sample data
+    per feature.
+
+    how different to parent class?
+
+    Attributes:
+        dtf: Dataframe with sample data.
+        model_trained: List of objects containing already trained SVM models. Defaults
+        to None.
+        nmax: Number of considered features (data points). Defaults to None.
+        y_predict: Initialize array of predicted class labels.
+
+    """
+
+    @property
+    def fit(self) -> list[SVC]:
+        """Fit individual models per batch.
+
+        How?
+        How different to parent class
+
+        Returns:
+            List of trained models.
+        """
+
+
+class HrfMVPA(MVPA):
+    """Multi-voxel pattern analysis (MVPA) with hyperparameter tuning and hrf shift
+    selection.
+
+    This class performs binary classification on fmri time series data sampled onto a
+    surface mesh. A dataframe is loaded which is used for fitting and predicting using a
+    leave-one-run-out cross-validataion procedure. The dataframe must contain the
+    following columns: batch, label, feature 0, feature 1, ...
+    The batch column assigns each row its corresponding fold, i.e., folds are already
+    set while loading and no random splitting ist performed. This is done to prevent
+    any information leakage due to finite auto-correlation in time series data. The
+    label column contains class labels for binary classification. These are expected to
+    be either 0 or 1. All other columns (feature 0, feature 1, ...) contain sample data
+    per feature.
+
+    how different to parent class?
+    what does it do?
+
+    Attributes:
+        dtf: Dataframe with sample data.
+        model_trained: List of objects containing already trained SVM models. Defaults
+        to None.
+        nmax: Number of considered features (data points). Defaults to None.
+        y_predict: Initialize array of predicted class labels.
+
+    """
+
+    @property
+    def fit(self) -> list[SVC]:
+        """Fit individual models per batch.
+
+        How?
+        How different to parent class
+
+        Returns:
+            List of trained models.
+        """
