@@ -1,5 +1,5 @@
 - [ ] model.TunedMVPA inherited from MVPA with hyperparameter tuning (nested cross-validation)
 - [ ] model.HrfMVPA inheretited from MVPA with hyperparameter tuning and hrf selection
-- [ ] preprocessing.TimeseriesPreprocRivalry -> override parse_events for rivalry (convolve with hrf)
+- [ ] preprocessing.TimeseriesPreprocRivalry -> override parse_events for rivalry (convolve with hrf) -> _rivalry
 - [ ] TimeseriesPreproc -> check crop_data with n_skip=0
 - [ ] script like main.py for rivalry analysis
