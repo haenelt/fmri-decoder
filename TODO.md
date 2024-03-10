@@ -1,4 +1,3 @@
-- [ ] model.ColumnMVPA inherited from MVPA with feature selection across layers
 - [ ] model.TunedMVPA inherited from MVPA with hyperparameter tuning (nested cross-validation)
 - [ ] model.HrfMVPA inherited from MVPA with hyperparameter tuning and hrf selection
 - [ ] preprocessing.TimeseriesPreprocRivalry -> override parse_events for rivalry (convolve with hrf) -> _rivalry
