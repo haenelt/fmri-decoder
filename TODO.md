@@ -1,7 +1,0 @@
-- [ ] TimeseriesPreproc: parse_events for rivalry
-- [ ] TimeseriesPreproc: crop_data with n_skip=0?
-- [ ] MVPA: hyperparameter tuning
-- [ ] MVPA: nested cross-validation (hrf)
-- [ ] update changelog
-- [ ] update readme
-- [ ] add tests
