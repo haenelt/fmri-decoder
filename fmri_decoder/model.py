@@ -886,6 +886,88 @@ class ExternalFeatureMVPA(MVPA):
         index_sorted = index_sorted[: self.nmax]
         return [_feature_names[i] for i in index_sorted]
 
+    def scale_features(self, method: str) -> None:
+        """Scale features per fold. Within one fold, each feature is scaled
+        independently. Both dtf and dtf_feature are scaled separately.
+
+        Args:
+            method: min_max (scale in the range [0, 1]) or standard (standardize using
+            standard score).
+        """
+        self.dtf = self._scale_features(self.dtf, method)
+        self.dtf_feature = self._scale_features(self.dtf_feature, method)
+
+    def scale_samples(self, method: str) -> None:
+        """Scale samples. Samples are scaled individually across features. Both dtf and
+        dtf_feature are scaled separated.
+
+        Args:
+            method: norm (normalize by dividing by its l2 norm) or standard
+            (standardize using standard score).
+        """
+        self.dtf = self._scale_samples(self.dtf, method)
+        self.dtf_feature = self._scale_samples(self.dtf_feature, method)
+
+    def _scale_features(self, dtf: pd.DataFrame, method: str) -> pd.DataFrame:
+        """Do the actual feature scaling as in fmri_decoder.model.MVPA.scale_features.
+
+        Args:
+            dtf: Dataframe for classification or feature selection.
+            method: min_max (scale in the range [0, 1]) or standard (standardize using
+            standard score).
+
+        Raises:
+            ValueError: If an unknown method is selected.
+
+        Returns:
+            Scaled dataframe.
+        """
+        for i in range(self.n_batch):
+            data = dtf.loc[dtf["batch"] == i, self.feature_names]
+
+            min_ = np.tile(np.min(data, axis=0), (len(data), 1))
+            max_ = np.tile(np.max(data, axis=0), (len(data), 1))
+            mu_ = np.tile(np.mean(data, axis=0), (len(data), 1))
+            sd_ = np.tile(np.std(data, axis=0), (len(data), 1))
+            if method == "min_max":
+                data = (data - min_) / (max_ - min_)
+            elif method == "standard":
+                data = (data - mu_) / sd_
+            else:
+                raise ValueError("Unknown method!")
+
+            dtf.loc[dtf["batch"] == i, self.feature_names] = data
+        return dtf
+
+    def _scale_samples(self, dtf: pd.DataFrame, method: str) -> pd.DataFrame:
+        """Do the actual sample scaling as in fmri_decoder.model.MVPA.scale_samples.
+
+        Args:
+            dtf: Dataframe for classification or feature selection.
+            method: norm (normalize by dividing by its l2 norm) or standard (standardize
+            using standard score).
+
+        Raises:
+            ValueError: If an unknown method is selected.
+
+        Returns:
+            Scaled dataframe.
+        """
+        n_features = len(self.feature_names)
+        data = dtf[self.feature_names]
+        mu_ = np.tile(np.mean(data, axis=1), (n_features, 1)).T
+        sd_ = np.tile(np.std(data, axis=1), (n_features, 1)).T
+        norm_ = np.tile(np.sqrt(np.sum(data**2, axis=1)), (n_features, 1)).T
+        if method == "norm":
+            data /= norm_
+        elif method == "standard":
+            data = (data - mu_) / sd_
+        else:
+            raise ValueError("Unknown method!")
+
+        dtf[self.feature_names] = data
+        return dtf
+
     @property
     def dtf_feature(self) -> pd.DataFrame:
         """Get dtf."""
