@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""Module for performing binary classification from multi-voxel pattern using a
-support vector machine."""
+"""Module for performing binary classification from multi-voxel pattern using a support
+vector machine."""
 
 import csv
 from collections import namedtuple
@@ -17,7 +17,7 @@ from sklearn.datasets import load_iris
 from sklearn.feature_selection import f_classif
 from sklearn.svm import SVC
 
-__all__ = ["MVPA"]
+__all__ = ["MVPA", "ExternalFeatureMVPA"]
 
 plt.style.use(Path(__file__).parent / "default.mplstyle")
 
@@ -816,3 +816,195 @@ class MVPA:
             raise ValueError("Please check feature names!")
 
         self._dtf = df_
+
+
+class ExternalFeatureMVPA(MVPA):
+    """Multi-voxel pattern analysis (MVPA) with feature selection based on an external
+    dataset. ature selection must have the same structure and shape
+    as the dataset that is used for binary classification.
+
+    Args:
+        dtf: see fmri_decoder.model.MVPA
+        dtf_feature: Dataframe used for feature selection. The data frame must have the
+        same structure and shape as dtf, used for binary classification. Potential use
+        cases are feature selection based on a different cortical layer or average time
+        series across cortical depth.
+        model_trained: see fmri_decoder.model.MVPA
+        nmax: see fmri_decoder.model.MVPA
+    """
+
+    def __init__(
+        self,
+        dtf: pd.DataFrame,
+        dtf_feature: pd.DataFrame,
+        model_trained: Optional[list] = None,
+        nmax: Optional[int] = None,
+    ) -> None:
+        super().__init__(dtf, model_trained, nmax)
+        self.dtf_feature = dtf_feature
+
+    def select_features(self, fold: int, y_train: Optional[np.ndarray] = None) -> list:
+        """Select nmax best features based on ANOVA F-values of the external sample.
+        This can be data sampled on a different cortical layer or the average across
+        cortical depth.
+
+        Args:
+            fold: Select the fold to be analyzed.
+            y_train: Alternative class label, e.g. for estimation of a null distribution
+            using shuffled sampled. Defaults to None.
+
+        Raises:
+            ValueError: If not enough features are available.
+
+        Returns:
+            List of selected feature names.
+        """
+        if self.nmax and len(self.dtf.columns) < 2 + self.nmax:
+            raise ValueError("Not enough features available or nmax is not set!")
+        X_train = np.array(
+            self.dtf_feature.loc[self.dtf["batch"] != fold, self.feature_names]
+        )
+        if y_train is None:
+            y_train = np.array(self.dtf_feature.loc[self.dtf["batch"] != fold, "label"])
+
+        # discard features with non-numeric values
+        _feature_index = np.sum(X_train, axis=0)
+        _feature_names = [
+            feat
+            for feat, idx in zip(self.feature_names, _feature_index)
+            if np.isfinite(idx)
+        ]
+        X_train = np.array(
+            self.dtf_feature.loc[self.dtf["batch"] != fold, _feature_names]
+        )
+
+        f_statistic = f_classif(X_train, y_train)[0]
+        index = np.arange(len(_feature_names))
+        index_sorted = np.array(
+            [x for _, x in sorted(zip(f_statistic, index), reverse=True)]
+        )
+        index_sorted = index_sorted[: self.nmax]
+        return [_feature_names[i] for i in index_sorted]
+
+    @property
+    def dtf_feature(self) -> pd.DataFrame:
+        """Get dtf."""
+        return self._dtf_feature
+
+    @dtf_feature.setter
+    def dtf_feature(self, df_: pd.DataFrame) -> None:
+        """Set dtf."""
+        nb_ = np.unique(df_["batch"]).size  # number of batches
+        ln_ = np.unique(df_["label"])  # class label names
+        fn_ = list(df_.columns[2:])  # feature names
+
+        if not isinstance(df_, pd.DataFrame):
+            raise TypeError("dtf must be a pandas dataframe!")
+        if not np.isfinite(df_.iloc[:, 2:].to_numpy()).all():
+            raise ValueError("dtf contains non-numeric data!")
+        if not isinstance(nb_, int):
+            raise TypeError("Number of batches must be an integer!")
+        if not nb_ > 0:
+            raise ValueError("Number of batches must be positive!")
+        if not isinstance(ln_, np.ndarray):
+            raise ValueError("Label names must be a numpy array!")
+        if not ln_.ndim == 1 or not ln_.size == 2:
+            raise ValueError("Label names must have shape=(2,)!")
+        if any(i not in [0, 1] for i in ln_):
+            raise ValueError("Label names must be 0 and 1 for binary classification!")
+        if not isinstance(fn_, list):
+            raise TypeError("Feature names must be a list!")
+        if any(f != f"feature {i}" for i, f in enumerate(fn_)):
+            raise ValueError("Please check feature names!")
+
+        self._dtf_feature = df_
+
+    @classmethod
+    def from_file(
+        cls,
+        file_dataframe: str,
+        file_dataframe_feature: str,
+        file_model: Optional[str] = None,
+        nmax: Optional[int] = None,
+    ):
+        """Alternative constructor for MVPA from saved file.
+
+        Args:
+            file_dataframe: File name of saved pandas dataframe.
+            file_dataframe_feature: File name of saved pandas dataframe used for feature
+            selection.
+            file_model: File name of already fitted models. Defaults to None.
+            nmax: Number of considered features (data points). Defaults to None.
+        """
+        dtf = pd.read_parquet(file_dataframe, engine="pyarrow")
+        dtf_feature = pd.read_parquet(file_dataframe_feature, engine="pyarrow")
+        model = joblib.load(file_model) if file_model else None
+        return cls(dtf, dtf_feature, model, nmax)
+
+    @classmethod
+    def from_selected_data(
+        cls,
+        data: dict,
+        features: dict,
+        label: list[np.ndarray],
+        model_trained: Optional[list] = None,
+    ):
+        """Disabled for inherited class."""
+        raise NotImplementedError(
+            "Alternative constructor from_selected_data is disabled for "
+            "ExternalFeatureMVPA."
+        )
+
+    @classmethod
+    def from_data(
+        cls,
+        data: dict,
+        data_feature: dict,
+        label: list[np.ndarray],
+        model_trained: Optional[list] = None,
+        nmax: Optional[int] = None,
+        remove_nan: bool = False,
+    ):
+        """Alternative contructor for MVPA from a loaded data dictionary. Data from
+        single hemispheres are separated in the dictionary by the keys lh and rh.
+
+        Args:
+            data: Data arrays.
+            data_feature: Separate data array on which feature selection is based on.
+            label: List of class label arrays.
+            model_trained: List of already fitted models. Defaults to None.
+            nmax: Number of considered features (data points). Defaults to None.
+            remove_nan: Discard non-numeric columns in data.
+        """
+        if remove_nan is True:
+            for hemi in ["lh", "rh"]:
+                ind = np.sum(data[hemi], axis=(0, 2))
+                data[hemi] = [
+                    data[hemi][x][~np.isnan(ind), :] for x in range(len(data[hemi]))
+                ]
+
+        n_features = np.size(data["lh"][0], 0) + np.size(data["rh"][0], 0)
+        columns = ["batch", "label"] + [f"feature {i}" for i in range(n_features)]
+        dtf = pd.DataFrame(columns=columns)
+        dtf_feature = pd.DataFrame(columns=columns)
+        for i, y in enumerate(label):
+            arr = np.zeros((len(y), n_features + 2))
+            arr[:, 0] = i
+            arr[:, 1] = y - 1  # rescale class labels [1, 2] -> [0, 1]
+            arr[:, 2:] = np.concatenate((data["lh"][i], data["rh"][i])).T
+            dtf = pd.concat([dtf, pd.DataFrame(arr, columns=columns)])
+            dtf_feature = pd.concat([dtf_feature, pd.DataFrame(arr, columns=columns)])
+
+        dtf["batch"] = dtf["batch"].astype(int)
+        dtf["label"] = dtf["label"].astype(int)
+        dtf_feature["batch"] = dtf_feature["batch"].astype(int)
+        dtf_feature["label"] = dtf_feature["label"].astype(int)
+
+        return cls(dtf, dtf_feature, model_trained, nmax)
+
+    @classmethod
+    def from_iris(cls, noise_sd: Optional[float] = None):
+        """Disabled for inherited class."""
+        raise NotImplementedError(
+            "Alternative constructor from_iris is disabled for ExternalFeatureMVPA."
+        )

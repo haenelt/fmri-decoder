@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "fmri-decoder"
-version = "0.1.0"
+version = "0.2.0"
 description = "Decoding tools for functional magnetic resonance imaging data"
 authors = ["Daniel Haenelt <daniel.haenelt@gmail.com>"]
 license = "GPLv3"
