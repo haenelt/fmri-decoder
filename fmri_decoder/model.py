@@ -982,6 +982,10 @@ class ExternalFeatureMVPA(MVPA):
                 data[hemi] = [
                     data[hemi][x][~np.isnan(ind), :] for x in range(len(data[hemi]))
                 ]
+                data_feature[hemi] = [
+                    data_feature[hemi][x][~np.isnan(ind), :]
+                    for x in range(len(data_feature[hemi]))
+                ]
 
         n_features = np.size(data["lh"][0], 0) + np.size(data["rh"][0], 0)
         columns = ["batch", "label"] + [f"feature {i}" for i in range(n_features)]
