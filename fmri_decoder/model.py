@@ -641,6 +641,8 @@ class MVPA:
         file_dataframe: str,
         file_model: Optional[str] = None,
         nmax: Optional[int] = None,
+        *args,
+        **kwargs,
     ):
         """Alternative constructor for MVPA from saved file.
 
@@ -700,6 +702,8 @@ class MVPA:
         model_trained: Optional[list] = None,
         nmax: Optional[int] = None,
         remove_nan: bool = False,
+        *args,
+        **kwargs,
     ):
         """Alternative contructor for MVPA from a loaded data dictionary. Data from
         single hemispheres are separated in the dictionary by the keys lh and rh.
@@ -1005,19 +1009,23 @@ class ExternalFeatureMVPA(MVPA):
     def from_file(
         cls,
         file_dataframe: str,
-        file_dataframe_feature: str,
         file_model: Optional[str] = None,
         nmax: Optional[int] = None,
+        file_dataframe_feature: Optional[str] = None,
+        *args,
+        **kwargs,
     ):
         """Alternative constructor for MVPA from saved file.
 
         Args:
             file_dataframe: File name of saved pandas dataframe.
-            file_dataframe_feature: File name of saved pandas dataframe used for feature
-            selection.
             file_model: File name of already fitted models. Defaults to None.
             nmax: Number of considered features (data points). Defaults to None.
+            file_dataframe_feature: File name of saved pandas dataframe used for feature
+            selection.
         """
+        if file_dataframe_feature is None:
+            file_dataframe_feature = file_dataframe
         dtf = pd.read_parquet(file_dataframe, engine="pyarrow")
         dtf_feature = pd.read_parquet(file_dataframe_feature, engine="pyarrow")
         model = joblib.load(file_model) if file_model else None
@@ -1041,23 +1049,27 @@ class ExternalFeatureMVPA(MVPA):
     def from_data(
         cls,
         data: dict,
-        data_feature: dict,
         label: list[np.ndarray],
         model_trained: Optional[list] = None,
         nmax: Optional[int] = None,
         remove_nan: bool = False,
+        data_feature: Optional[dict] = None,
+        *args,
+        **kwargs,
     ):
         """Alternative contructor for MVPA from a loaded data dictionary. Data from
         single hemispheres are separated in the dictionary by the keys lh and rh.
 
         Args:
             data: Data arrays.
-            data_feature: Separate data array on which feature selection is based on.
             label: List of class label arrays.
             model_trained: List of already fitted models. Defaults to None.
             nmax: Number of considered features (data points). Defaults to None.
             remove_nan: Discard non-numeric columns in data.
+            data_feature: Separate data array on which feature selection is based on.
         """
+        if data_feature is None:
+            data_feature = data.copy()
         if remove_nan is True:
             for hemi in ["lh", "rh"]:
                 ind = np.sum(data[hemi], axis=(0, 2))
@@ -1083,7 +1095,7 @@ class ExternalFeatureMVPA(MVPA):
             arr_feature = np.zeros((len(y), n_features + 2))
             arr_feature[:, 0] = i
             arr_feature[:, 1] = y - 1
-            arr_feature[:, 2] = np.concatenate(
+            arr_feature[:, 2:] = np.concatenate(
                 (data_feature["lh"][i], data_feature["rh"][i])
             ).T
             dtf_feature = pd.concat(
