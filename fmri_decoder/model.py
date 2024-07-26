@@ -1079,7 +1079,16 @@ class ExternalFeatureMVPA(MVPA):
             arr[:, 1] = y - 1  # rescale class labels [1, 2] -> [0, 1]
             arr[:, 2:] = np.concatenate((data["lh"][i], data["rh"][i])).T
             dtf = pd.concat([dtf, pd.DataFrame(arr, columns=columns)])
-            dtf_feature = pd.concat([dtf_feature, pd.DataFrame(arr, columns=columns)])
+
+            arr_feature = np.zeros((len(y), n_features + 2))
+            arr_feature[:, 0] = i
+            arr_feature[:, 1] = y - 1
+            arr_feature[:, 2] = np.concatenate(
+                (data_feature["lh"][i], data_feature["rh"][i])
+            ).T
+            dtf_feature = pd.concat(
+                [dtf_feature, pd.DataFrame(arr_feature, columns=columns)]
+            )
 
         dtf["batch"] = dtf["batch"].astype(int)
         dtf["label"] = dtf["label"].astype(int)
